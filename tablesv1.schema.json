@@ -1,0 +1,57 @@
+  {
+    "type": ["array", "object"],
+    "items": [
+      {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "cols": {
+            "type": "array",
+            "items": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "fKeys": {
+            "type": "array",
+            "items": [
+              {
+                "type": "object",
+                "properties": {
+                  "names": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "table": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "names",
+                  "table"
+                ]
+              }
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "cols",
+          "fKeys"
+        ]
+      }
+    ]
+  }

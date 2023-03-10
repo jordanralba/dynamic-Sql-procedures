@@ -1,0 +1,251 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>AiroDigital Dynamic Sql Procedure and Query Generator</title>
+    <link rel='stylesheet' href='style.css'>
+</head>
+
+<body>
+    <form id="tableInfo" method="post">
+    <h1>Generate MySql Query</h1>
+
+    <hr />
+    <div class='row'>
+        <div class='col-3'>
+            <label>How Many Tables? <br/> <small>Include foreign tables in count</small></label>
+        </div>
+        <div class='col-2'>
+            <input id='tableAmount' type='number' value="1" />
+        </div>
+    </div>
+    <hr />
+    <div class='row' id='tables'></div>
+    <hr />
+    <div class='row'>
+        <div class='col-12'>
+            <input type="submit" name="createJson" id='createJson' />
+        </div>
+    </div>
+</form>
+    <div class='row'>
+        <div class='col-2'>
+            <label>Procedure Type</label>
+        </div>
+        <div class='col-10'>
+            <select id='sqlType'>
+                <option value="select">Select</option>
+                <option value="insert">Insert</option>
+                <option value="update">Update</option>
+                <option value="innerjoinup">Inner Join on FKeys</option>
+                <option value="delete">Delete Row</option>
+            </select>
+        </div>
+    </div>
+  
+
+    <hr />
+
+    <div class='row'>
+        <div class='col-12'>
+            <button id='all-results'>All Results</button>
+        </div>
+    </div>
+
+    <div id='sampleJson'>
+
+    </div>
+
+    <script>
+        const isEmpty = (obj) => Object.keys(obj).length === 0;
+        const submitTables = document.getElementById('createJson');
+        const form = document.getElementById('tableInfo');
+        const tableAmount = document.getElementById('tableAmount');
+        const tableContainer = document.getElementById('tables');
+        const tables = tableContainer.children;
+
+  
+    const newTable = (x) =>{ 
+                const container = document.createElement('div');
+                    container.setAttribute('class', 'row');
+                    container.setAttribute('id', 'table'+x);
+                const header = document.createElement('div');
+                    header.setAttribute('class', 'row');
+                    header.innerHTML = '<h2>Table '+x
+                const nRow = document.createElement('div');
+                    nRow.setAttribute('class', 'row');
+                    nRow.setAttribute('id', 'table'+x+'Name');
+                const cRow = document.createElement('div');
+                    cRow.setAttribute('class', 'row');
+                    cRow.setAttribute('id', 'table'+x+'Cols');
+                const fKCRow = document.createElement('div');
+                    fKCRow.setAttribute('class', 'row');
+                    fKCRow.setAttribute('id', 'table'+x+'fKeyCols');
+                const fKTRow = document.createElement('div');
+                    fKTRow.setAttribute('class', 'row');
+                    fKTRow.setAttribute('id', 'table'+x+'fKeyTables');
+                const nInput = document.createElement('input');
+                    nInput.setAttribute('type', 'text');
+                    nInput.setAttribute('id', 't'+x+'NInput')
+                const cInput = document.createElement('input');
+                    cInput.setAttribute('type', 'text');
+                    cInput.setAttribute('id', 't'+x+'CInput')
+
+                const fKCInput = document.createElement('input');
+                    fKCInput.setAttribute('type', 'text');
+                    fKCInput.setAttribute('id', 't'+x+'fKCInput')
+
+                const fKTInput = document.createElement('input');
+                    fKTInput.setAttribute('type', 'text');
+                    fKTInput.setAttribute('id', 't'+x+'fKTInput');
+                
+                const nLabel = document.createElement('label');
+                    nLabel.setAttribute('for', 't'+x+'NInput');
+                    nLabel.setAttribute('class', 'col-3');
+                    nLabel.innerHTML = 'Table Name';
+                const cLabel = document.createElement('label');
+                    cLabel.setAttribute('for', 't'+x+'CInput');
+                    cLabel.setAttribute('class', 'col-3');
+                    cLabel.innerHTML = 'Columns <small>Exclude Foreign and Confidential Cols</small>';
+                const fKCLabel = document.createElement('label');
+                    fKCLabel.setAttribute('for', 't'+x+'fKCInput');
+                    fKCLabel.setAttribute('class', 'col-3');
+                    fKCLabel.innerHTML = 'Foreign Column/s';
+                const fKTLabel = document.createElement('label');
+                    fKTLabel.setAttribute('for', 't'+x+'fKTInput');
+                    fKTLabel.setAttribute('class', 'col-3');
+                    fKTLabel.innerHTML = 'Foreign Table/s';
+                
+                const addTable = tableContainer.appendChild(container);
+                const addHeader = addTable.appendChild(header);
+                const addName = addTable.appendChild(nRow);
+                    addName.appendChild(nLabel);
+                    addName.appendChild(nInput);
+                const addCols = addTable.appendChild(cRow);
+                    addCols.appendChild(cLabel);
+                    addCols.appendChild(cInput);
+                const addfKeyC = addTable.appendChild(fKCRow);
+                    addfKeyC.appendChild(fKCLabel);
+                    addfKeyC.appendChild(fKCInput);
+                const addfKeyT = addTable.appendChild(fKTRow);
+                    addfKeyT.appendChild(fKTLabel);                    
+                    addfKeyT.appendChild(fKTInput);
+                    
+                
+    }
+    newTable(tableAmount.value);
+    const createJson = submitTables.addEventListener('click', (event) => {
+            event.preventDefault();
+            const formData = new FormData();
+            const tableJson = [];
+            formData.append('tableAmount', tableAmount.value);
+            formData.append('operation', document.getElementById('sqlType').value);
+            for(x=1;x<=tables.length;x++){
+                target = tables[x-1].querySelectorAll('input');
+                const tarJson = {};
+                    tarJson.name = target[0].value; 
+                    tarJson.cols = target[1].value.split(" ");                
+                    tarJson.fKeys = {names:[target[2].value.split(" ")], table: target[3].value};   
+                    tableJson.push(tarJson);             
+                for(i=0;i<target.length;i++){
+                    formData.append(target[i].id, target[i].value);               
+                    console.log(formData);
+
+                }
+                console.log(tableJson);
+                console.log(tarJson);
+
+            }
+            
+
+            //Settings for FETCH API request
+            let fetchSettings = {
+                method: 'POST',
+                body: formData
+            };
+
+            //Send FETCH API request
+            fetch("http://localhost:3000/", fetchSettings)
+                .then((response) => {
+                    return new Promise((resolve) => response.json()
+                        .then((json) => resolve({
+                            status: response.status,
+                            json,
+                        })
+                        ));
+                })
+                //Logic to display errors on form 
+                .then(({ status, json }) => {
+
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            return;
+        });
+
+  const tableChange = tableAmount.addEventListener('change', (event)=>{
+        
+        for(i=tables.length;i > tableAmount.value;i--){
+            tableContainer.lastChild.remove();
+        }  
+        for(x=tables.length +1;x<=tableAmount.value;x++){
+            newTable(x);
+        }
+            
+
+    });
+        document.getElementById('all-results').addEventListener('click', (event) => {
+            //Settings for FETCH API request
+            let fetchSettings = {
+                method: 'POST'
+            };
+            //Send FETCH API request
+            fetch("http://localhost/select/", fetchSettings)
+                .then((response) => {
+                    //Turns data into a promise that looks like the following:
+                    // {
+                    //    status: ...
+                    //    json:   
+                    // }
+                    return new Promise((resolve) => response.json()
+                        .then((json) => resolve({
+                            status: response.status,
+                            json,
+                        })
+                    ));
+                })
+                //Logic to display errors on form 
+                .then(({ status, json }) => {
+                    let bookTable = `<table>
+                    <tr>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Book</th>
+                        <th>Why</th>
+                        <th>Action</th>
+                    </tr>`;
+
+                    for (let x = 0; x < json.data.length; x++) {
+                        bookTable += `<tr>
+                            <td>` + json.data[x].first_name + `</td>
+                            <td>` + json.data[x].last_name + `</td>
+                            <td>` + json.data[x].title + `</td>
+                            <td>` + json.data[x].why + `</td>
+                            <td><a href='edit.html?id=` + json.data[x].survey_id + `'>Edit</td>
+                        </tr>`
+                    }
+
+                    bookTable += `</table>`;
+                    document.getElementById('book-table').innerHTML = bookTable;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+
+        });
+    </script>
+</body>
+
+</html>
